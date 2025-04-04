@@ -1,0 +1,281 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package model.dao;
+
+import connection.ConnectionFactory;
+import java.math.BigDecimal;
+import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import javax.swing.JOptionPane;
+import model.bean.Fretamento;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
+
+/**
+ *
+ * @author User
+ */
+public class FretamentoDAO {
+
+    public void SaveCreate(Fretamento f) {
+
+        Connection con = connection.ConnectionFactory.getConnection();
+        PreparedStatement stmt = null;
+
+        try {
+
+            SimpleDateFormat userFormat = new SimpleDateFormat("dd/MM/yyyy");
+            java.util.Date utilDate = userFormat.parse(f.getData());
+            java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
+
+            stmt = con.prepareStatement("INSERT INTO fretamento (dia, origem, destino, valortonelada, toneladacarregada) VALUES (?, ?, ?, ?, ?)");
+            stmt.setDate(1, sqlDate);
+            stmt.setString(2, f.getOrigem());
+            stmt.setString(3, f.getDestino());
+            stmt.setBigDecimal(4, f.getValorTonelada());
+            stmt.setBigDecimal(5, f.getToneladaCarregada());
+
+            stmt.executeUpdate();
+            JOptionPane.showMessageDialog(null, " Salvo com sucesso ");
+
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Falha ao inserir dados " + ex);
+        } catch (ParseException ex) {
+            Logger.getLogger(FretamentoDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            ConnectionFactory.closeConnection(con, stmt);
+        }
+
+    }
+//========================================================================================================================================================  
+
+    public List<Fretamento> buscar() {
+
+        Connection con = ConnectionFactory.getConnection();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
+        List<Fretamento> frete = new ArrayList<>();
+
+        try {
+            stmt = con.prepareStatement("SELECT * FROM fretamento");
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Fretamento fretamento = new Fretamento();
+
+                SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+                java.sql.Date sqlDate = rs.getDate("dia");
+
+                if (sqlDate != null) {
+                    String dataFormatada = formato.format(sqlDate);
+                    fretamento.setData(dataFormatada);
+                }
+
+                fretamento.setId(rs.getInt("id"));
+                fretamento.setOrigem(rs.getString("origem"));
+                fretamento.setDestino(rs.getString("destino"));
+                fretamento.setValorTonelada(rs.getBigDecimal("valortonelada") != null ? rs.getBigDecimal("valortonelada") : BigDecimal.ZERO);
+                fretamento.setToneladaCarregada(rs.getBigDecimal("toneladacarregada") != null ? rs.getBigDecimal("toneladacarregada") : BigDecimal.ZERO);
+
+                frete.add(fretamento);
+            }
+
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Não foi possível buscar os dados da tabela! " + ex);
+
+        } finally {
+            ConnectionFactory.closeConnection(con, stmt, rs);
+        }
+
+        return frete;
+    }
+    //==========================================================================================================================================================  
+
+    public List<Fretamento> buscarDia(Date dia) {
+
+        Connection con = ConnectionFactory.getConnection();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
+        List<Fretamento> frete = new ArrayList<>();
+
+        try {
+            stmt = con.prepareStatement(" SELECT * FROM fretamento WHERE dia = '0000-00-00' ");
+            stmt.setString(1, "%" + dia + "%");
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+
+                Fretamento fretamento = new Fretamento();
+
+                SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+
+                java.sql.Date sqlDate = rs.getDate("dia");
+
+                if (sqlDate != null) {
+                    String dataFormatada = formato.format(sqlDate);
+                    fretamento.setData(dataFormatada);
+                }
+                fretamento.setId(rs.getInt("id"));
+                fretamento.setOrigem(rs.getString("origem"));
+                fretamento.setDestino(rs.getString("destino"));
+                fretamento.setValorTonelada(rs.getBigDecimal("valortonelada"));
+                fretamento.setToneladaCarregada(rs.getBigDecimal("toneladacarregada"));
+                frete.add(fretamento);
+
+            }
+
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Não foi possivel buscar os dados relacionados a origem!  " + ex);
+
+        } finally {
+            ConnectionFactory.closeConnection(con, stmt, rs);
+        }
+        return frete;
+    }
+//===========================================================================================================================================================  
+
+    public List<Fretamento> buscarOrigem(String origem) {
+
+        Connection con = ConnectionFactory.getConnection();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
+        List<Fretamento> frete = new ArrayList<>();
+
+        try {
+            stmt = con.prepareStatement(" SELECT * FROM fretamento like origem");
+            stmt.setString(1, "%" + origem + "%");
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+
+                Fretamento fretamento = new Fretamento();
+
+                SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+                java.sql.Date sqlDate = rs.getDate("dia");
+
+                if (sqlDate != null) {
+                    String dataFormatada = formato.format(sqlDate);
+                    fretamento.setData(dataFormatada);
+                }
+
+                fretamento.setId(rs.getInt("id"));
+                fretamento.setOrigem(rs.getString("origem"));
+                fretamento.setDestino(rs.getString("destino"));
+                fretamento.setValorTonelada(rs.getBigDecimal("valortonelada"));
+                fretamento.setToneladaCarregada(rs.getBigDecimal("toneladacarregada"));
+                frete.add(fretamento);
+
+            }
+
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Não foi possivel buscar os dados relacionados a origem!  " + ex);
+
+        } finally {
+            ConnectionFactory.closeConnection(con, stmt, rs);
+        }
+        return frete;
+    }
+//===========================================================================================================================================================  
+
+    public List<Fretamento> buscarDestino(String destino) {
+
+        Connection con = ConnectionFactory.getConnection();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
+        List<Fretamento> frete = new ArrayList<>();
+
+        try {
+            stmt = con.prepareStatement(" SELECT * FROM fretamento where destino like ?");
+            stmt.setString(1, "%" + destino + "%");
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+
+                Fretamento fretamento = new Fretamento();
+
+                SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+                java.sql.Date sqlDate = rs.getDate("dia");
+
+                if (sqlDate != null) {
+                    String dataFormatada = formato.format(sqlDate);
+                    fretamento.setData(dataFormatada);
+                }
+                fretamento.setId(rs.getInt("id"));
+                fretamento.setOrigem(rs.getString("origem"));
+                fretamento.setDestino(rs.getString("destino"));
+                fretamento.setValorTonelada(rs.getBigDecimal("valortonelada"));
+                fretamento.setToneladaCarregada(rs.getBigDecimal("toneladacarregada"));
+                frete.add(fretamento);
+
+            }
+
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Não foi possivel buscar os dados relacionados ao destino ! " + ex);
+
+        } finally {
+            ConnectionFactory.closeConnection(con, stmt, rs);
+        }
+        return frete;
+    }
+    //========================================================================================================================================================= = 
+
+    public void update(Fretamento f) throws ParseException {
+        Connection con = ConnectionFactory.getConnection();
+        PreparedStatement stmt = null;
+
+        try {
+            stmt = con.prepareStatement("UPDATE fretamento SET dia =? , origem = ? , destino = ? , valortonelada = ? ,toneladacarregada =? ");
+            SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+            
+            java.util.Date utilDate = formato.parse(f.getData());
+            java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
+            
+            
+            stmt.setDate(1, sqlDate);
+            stmt.setString(2, f.getOrigem());
+            stmt.setString(3, f.getDestino());
+            stmt.setBigDecimal(4, f.getValorTonelada());
+            stmt.setBigDecimal(4, f.getValorTonelada());
+            stmt.executeUpdate();
+            JOptionPane.showMessageDialog(null, "Atualizado  com sucesso ");
+
+        } catch (SQLException ex) {
+
+            JOptionPane.showMessageDialog(null, "Erro ao atulizar as tabelas " + ex);
+
+        }
+    }
+    //===========================================================================================================================================================  
+
+    public void delete(Fretamento f) {
+        Connection con = ConnectionFactory.getConnection();
+        PreparedStatement stmt = null;
+
+        try {
+            stmt = con.prepareStatement("DELETE FROM  fretamento WHERE id = ?  ");
+            stmt.setInt(1, f.getId());
+
+            stmt.executeUpdate();
+            JOptionPane.showMessageDialog(null, "Excluido com sucesso ");
+
+        } catch (SQLException ex) {
+
+            JOptionPane.showMessageDialog(null, "Erro ao deletar as tabelas " + ex);
+
+        }
+    }
+
+}
